@@ -39,5 +39,18 @@ public class JiraRestClient extends GenericRestClient {
 		}
 		return issues;
 	}
+	@SuppressWarnings("unchecked")
+	public List<JiraIssue> search(String assignee, String startDate) throws IOException {
+		String fields = "id,key,summary,updated";
+		String dateField = "updated";
+		String jql = (dateField + ">=\"" + startDate + "\" and assignee=" + assignee).replace(" ", "%20");
+		List<Map<String, Object>> issuesJsonMap = (List<Map<String, Object>>) getDataAsMap("search?maxResults=1000&fields=" + fields + "&jql=" + jql).get("issues");
+		ArrayList<JiraIssue> issues = new ArrayList<JiraIssue>();
+		for (Map<String, Object> issueJson : issuesJsonMap) {
+			Map<String, Object> workLog = getWorkLog((String)issueJson.get("key"));
+			issues.add(new JiraIssue(issueJson, workLog));
+		}
+		return issues;
+	}
 
 }
